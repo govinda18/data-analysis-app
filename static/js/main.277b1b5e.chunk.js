@@ -1,2 +1,0 @@
-(this["webpackJsonpdata-analysis-app"]=this["webpackJsonpdata-analysis-app"]||[]).push([[0],{9:function(a,t,e){"use strict";e.r(t);e(0);var n=e(3),s=e.n(n),p=e(1),c=function(a){return Object(p.jsx)("h1",{children:"Sample App"})};s.a.render(Object(p.jsx)(c,{}),document.getElementById("root"))}},[[9,1,2]]]);
-//# sourceMappingURL=main.277b1b5e.chunk.js.map
