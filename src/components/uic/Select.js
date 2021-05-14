@@ -9,7 +9,7 @@ const Select = ({
 	return(
 		<div>
 			<select {...props} className="browser-default custom-select">
-				{label && <option>{label}</option>}
+				{label && <option value={false}>{label}</option>}
 				{_.map(options, ({val, label}) => <option value={val}>{label}</option>)}
 			</select>
 		</div>

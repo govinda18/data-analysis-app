@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import _ from 'lodash';
 import Select from '../uic/Select';
 import styled from 'styled-components';
@@ -48,11 +48,25 @@ const getChartProps = (df, {chartType, xAxis, yAxis}) => {
 
 	yData = _.map(yData, (y) => _.toNumber(y))
 
-	const data = _.zip(xData, yData);
+	const data = _.filter(_.zip(xData, yData), ([x, y]) => y > 0);
 
 	_.set(chartProps, 'config.series.0.data', data);
 	_.set(chartProps, 'config.chart.type', chartType);
 	return chartProps;
+}
+
+const _filterDf = (df, filters) => {
+	let filteredDf = df;
+	_.forEach(filters, (val, col) => {
+		try {
+			filteredDf = filteredDf.query({
+				column: col,
+				is: '==',
+				to: val
+			})			
+		} catch {}
+	})
+	return filteredDf;
 }
 
 const Analyzer = ({data}) => {
@@ -60,21 +74,36 @@ const Analyzer = ({data}) => {
 		chartType: 'line',
 		yAxis: null
 	})
+	const [filters, setFilters] = useState({});
 
-	const df = csvToDf(data);
+	const df = useMemo(() => csvToDf(data), [data]);
 	const xAxis = _.find(df.columns, (col) => _.includes(_.lowerCase(col), 'date'));
 
 	if (!xAxis) {
 		return <center>No Date Column Found. Only Timeseries Data is currently supported</center>;
 	}
 
-	const chartProps = getChartProps(df, {
+	const chartProps = getChartProps(_filterDf(df, filters), {
 		...chartSelectState,
 		xAxis
 	});
 
+	const _getCategoryData = () => {
+		const categories = _.filter(
+			df.columns, 
+			(col) => 
+			(df[col].nunique() * 100) / df[col].count() < 5
+		)
+
+		return _.map(categories, (cat) => ({
+			col: cat,
+			values: _.sortBy(df[cat].unique().data)
+		}));	
+	}
+
 	return (
 		<TopContainer>
+			<FilterForm categories={_getCategoryData()} onSubmit={setFilters}/>
 			<SelectContainer>
 				<div>Select Chart Options: </div>
 				<Select 
@@ -115,7 +144,6 @@ const Analyzer = ({data}) => {
 					}}
 				/>
 			</SelectContainer>
-			<FilterForm data={df} />
 			<Chart {...chartProps}/>
 		</TopContainer>
 	);
