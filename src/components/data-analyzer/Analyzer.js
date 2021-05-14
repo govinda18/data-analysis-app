@@ -34,7 +34,7 @@ const csvToDf = (csvData) => {
 	return df;
 }
 
-const getChartProps = (df, {chartType, xAxis, yAxis}) => {
+const getChartProps = (df, {chartType, xAxis, yAxis, yAxis2}) => {
 	if (!chartType || !xAxis || !yAxis || !df[yAxis]) {
 		return;
 	}
@@ -43,9 +43,7 @@ const getChartProps = (df, {chartType, xAxis, yAxis}) => {
 
 	let xData = df[xAxis].data;
 	let yData = df[yAxis].data;
-
-	xData = dfd.to_datetime(df[xAxis]);	
-	xData = _.map(xData.date_list, (date) => date.getTime());	
+	xData = _.map(xData, (date) => new Date(date).getTime());	
 	df.set_index({key: xData, inplace: true});
 
 	yData = _.map(yData, (y) => _.toNumber(y))
@@ -54,6 +52,20 @@ const getChartProps = (df, {chartType, xAxis, yAxis}) => {
 
 	_.set(chartProps, 'config.series.0.data', data);
 	_.set(chartProps, 'config.chart.type', chartType);
+
+	if (yAxis2) {
+		const yData2 = _.map(df[yAxis2].data, (y) => _.toNumber(y))
+		const data = _.filter(_.zip(xData, yData2), ([x, y]) => y > 0);
+
+		_.set(chartProps, 'config.yAxis', [
+			{opposite: false, title: {text: 'YAxis 1'}}, 
+			{title: {text: 'YAxis 2'}, opposite: true}
+		])
+
+		_.set(chartProps, 'config.series.1.data', data);
+		_.set(chartProps, 'config.series.1.yAxis', 1);		
+	}
+
 	return chartProps;
 }
 
@@ -82,7 +94,8 @@ const _getPointData = (df, point) => {
 const Analyzer = ({data}) => {
 	const [chartSelectState, setChartSelectState] = useState({
 		chartType: 'line',
-		yAxis: null
+		yAxis1: null,
+		yAxis2: null
 	})
 	const [filters, setFilters] = useState({});
 
@@ -153,6 +166,19 @@ const Analyzer = ({data}) => {
 						}))						
 					}}
 				/>
+				{chartSelectState.yAxis
+				&& <Select 
+					label="Select Secondary Y Axis: "
+					options={_.map(_.sortBy(df.columns), (val) => ({val, label: val}))}
+					onChange={(evt) => {
+						evt.persist();
+						setChartSelectState(state => ({
+							...state,
+							yAxis2: evt.target.value
+						}))						
+					}}
+				/>
+				}
 			</SelectContainer>
 			<Chart {...chartProps} pointData={(point) => _getPointData(df, point)}/>
 		</TopContainer>
