@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import Chart from '../chart/Chart';
 import * as dfd from "danfojs/src/index";
 import FilterForm from './FilterForm';
+import Table from '../uic/Table';
 
 const SelectContainer = styled.div`
 	display: flex;
@@ -45,6 +46,7 @@ const getChartProps = (df, {chartType, xAxis, yAxis}) => {
 
 	xData = dfd.to_datetime(df[xAxis]);	
 	xData = _.map(xData.date_list, (date) => date.getTime());	
+	df.set_index({key: xData, inplace: true});
 
 	yData = _.map(yData, (y) => _.toNumber(y))
 
@@ -69,6 +71,14 @@ const _filterDf = (df, filters) => {
 	return filteredDf;
 }
 
+const _getXAxis = (df) => {
+	return _.find(df.columns, (col) => _.includes(_.lowerCase(col), 'date'));
+}
+
+const _getPointData = (df, point) => {
+	return <Table df={df.loc({rows: [point.x]}).T}  />
+}
+
 const Analyzer = ({data}) => {
 	const [chartSelectState, setChartSelectState] = useState({
 		chartType: 'line',
@@ -77,7 +87,7 @@ const Analyzer = ({data}) => {
 	const [filters, setFilters] = useState({});
 
 	const df = useMemo(() => csvToDf(data), [data]);
-	const xAxis = _.find(df.columns, (col) => _.includes(_.lowerCase(col), 'date'));
+	const xAxis = _getXAxis(df);
 
 	if (!xAxis) {
 		return <center>No Date Column Found. Only Timeseries Data is currently supported</center>;
@@ -144,7 +154,7 @@ const Analyzer = ({data}) => {
 					}}
 				/>
 			</SelectContainer>
-			<Chart {...chartProps}/>
+			<Chart {...chartProps} pointData={(point) => _getPointData(df, point)}/>
 		</TopContainer>
 	);
 }
