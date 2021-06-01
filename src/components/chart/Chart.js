@@ -3,11 +3,15 @@ import _ from 'lodash';
 import Highcharts from 'highcharts/highstock';
 import noData from 'highcharts/modules/no-data-to-display';
 import exporting from 'highcharts/modules/exporting';
+import indicators from 'highcharts/indicators/indicators.src';
 import HighchartsReact from 'highcharts-react-official';
 import Modal from '../uic/Modal';
 
 noData(Highcharts);
 exporting(Highcharts);
+indicators(Highcharts);
+
+console.log(Highcharts.seriesTypes)
 
 const DEFAULT_OPTIONS = {
 	title: {
@@ -42,7 +46,7 @@ const Chart = (props) => {
 	useEffect(() => {
 		if (_.get(chartRef, 'current.chart')) {
 			const chart = chartRef.current.chart;
-			if (chart.container.getAttribute('contextMenuEventAdded')) {
+			if (chart.container.getAttribute('contextMenuEventAdded') || !props.pointData) {
 				return;
 			}
 

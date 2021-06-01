@@ -1,5 +1,4 @@
 import React from 'react';
-import { MDBTable, MDBTableBody, MDBTableHead } from 'mdbreact';
 import styled from 'styled-components';
 
 const TableContainer = styled.div`
@@ -7,8 +6,7 @@ const TableContainer = styled.div`
 	display: table;
 `
 
-const Table = ({df, transposeData}) => {
-	console.log(df);
+const Table = ({df}) => {
 	return(
 		<TableContainer>
 			<table>

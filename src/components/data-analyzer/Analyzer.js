@@ -28,7 +28,7 @@ const csvToDf = (csvData) => {
 	)
 
 	const columns = data[0];
-	data.splice(0, 1);
+	data = _.filter(data, d => _.size(d) === _.size(columns));
 
 	const df = new dfd.DataFrame(data, {columns});
 	return df;
