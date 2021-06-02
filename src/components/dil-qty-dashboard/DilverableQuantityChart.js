@@ -13,28 +13,28 @@ const Container = styled.div`
 	align-items: center;
 `;
 
-const _getChartProps = (df, stock) => {
+const _getChartProps = (df, stock, customMA) => {
 	if (!df) {
 		return;
 	}
 
-	let xAxis = df[" DATE1"];
+	let xAxis = df["DATE"];
 	xAxis = _.map(xAxis.data, date => new Date(date).getTime())
 	
 	const ohlc_data = _.zip(
 		xAxis,
-		df[" OPEN_PRICE"].data,
-		df[" HIGH_PRICE"].data,
-		df[" LOW_PRICE"].data,
-		df[" CLOSE_PRICE"].data,
+		df["OPEN"].data,
+		df["HIGH"].data,
+		df["LOW"].data,
+		df["CLOSE"].data,
 	);
 
 	const dilQty = _.zip(
 		xAxis,
-		df[" DELIV_QTY"].data
+		df["DILEVERABLE QTY"].data
 	);
 
-	return {
+	const chartProps = {
 		config: {
 			yAxis: [{
 				title: {text: 'OHLC'},
@@ -91,10 +91,27 @@ const _getChartProps = (df, stock) => {
 			}]
 		}
 	}
+	customMA = _.toNumber(customMA);
+	if (customMA) {
+		chartProps.config.series.push({
+				type: 'sma',
+				linkedTo: 'dilqty',
+				name: `Dil Qty ${customMA} days MA`,
+				visible: true,
+				showInLegend: true,
+				params: {
+					period: customMA
+				},
+				yAxis: 1			
+		})
+	}
+
+	return chartProps;
 }
 
 const DilverableQuantityChart = ({stock}) => {
 	const [df, setDf] = useState(false);
+	const [customMA, setCustomMA] = useState(false);
 
 	const url = `https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/eq-data/${stock}.csv`;
 
@@ -118,7 +135,16 @@ const DilverableQuantityChart = ({stock}) => {
 				</Container>
 			)
 		}
-		<Chart {..._getChartProps(df, stock)} />
+		<div style={{display: 'flex', gap: '20px', alignItems: 'center'}}>
+			<div> Custom Moving Average </div>
+			<input 
+				style={{padding: '4px'}} 
+				placeholder="Enter Period" 
+				type="number"
+				onBlur={(evt) => setCustomMA(evt.target.value)} 
+			/>
+		</div>
+		<Chart {..._getChartProps(df, stock, customMA)} />
 		</>
 	)
 }

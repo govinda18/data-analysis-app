@@ -10,7 +10,7 @@ import Paper from '@material-ui/core/Paper';
 
 
 const DataTable = ({df}) => {
-	const attrs = [" CLOSE_PRICE", " TTL_TRD_QNTY", " DELIV_QTY"];
+	const attrs = ["CLOSE", "TOTTRDQTY", "DILEVERABLE QTY"];
 	
 	const _getMean = (col, days) => {
 		return _.round(df[col].tail(days).mean(), 2);

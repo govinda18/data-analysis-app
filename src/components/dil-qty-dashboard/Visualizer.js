@@ -20,6 +20,7 @@ const Visualizer = () => {
 		if (metadata) {
 			return;
 		}
+
 		fetch("https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/eq-data/metadata.json")
 		.then(async res => {
 			const fetched_metadata = await res.json();
