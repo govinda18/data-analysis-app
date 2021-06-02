@@ -11,8 +11,6 @@ noData(Highcharts);
 exporting(Highcharts);
 indicators(Highcharts);
 
-console.log(Highcharts.seriesTypes)
-
 const DEFAULT_OPTIONS = {
 	title: {
 		text: 'Data Analysis Chart'
@@ -68,7 +66,7 @@ const Chart = (props) => {
 			<Modal {...modelProps} toggle={_toggle}/>
 			<HighchartsReact 
 				ref={chartRef}
-				options={_.merge({}, props.config, DEFAULT_OPTIONS)} 
+				options={_.merge({}, DEFAULT_OPTIONS, props.config)} 
 				highcharts={Highcharts} 
 				constructorType={'stockChart'}
 			/>

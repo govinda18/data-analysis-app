@@ -13,7 +13,7 @@ const Container = styled.div`
 	align-items: center;
 `;
 
-const _getChartProps = (df) => {
+const _getChartProps = (df, stock) => {
 	if (!df) {
 		return;
 	}
@@ -37,13 +37,16 @@ const _getChartProps = (df) => {
 	return {
 		config: {
 			yAxis: [{
-				title: 'OHLC',
+				title: {text: 'OHLC'},
 				opposite: false
 			}, {
-				title: 'Dil Qty'
+				title: {text: 'Dil Qty'}
 			}],
 			legend: {
 				enabled: true
+			},
+			title: {
+				text: stock
 			},
 			series: [{
 				id: 'ohlc',
@@ -115,7 +118,7 @@ const DilverableQuantityChart = ({stock}) => {
 				</Container>
 			)
 		}
-		<Chart {..._getChartProps(df)} />
+		<Chart {..._getChartProps(df, stock)} />
 		</>
 	)
 }
