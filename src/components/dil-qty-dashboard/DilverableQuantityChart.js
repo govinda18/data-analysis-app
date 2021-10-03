@@ -18,20 +18,24 @@ const _getChartProps = (df, stock, customMA) => {
 		return;
 	}
 
-	let xAxis = df["DATE"];
-	xAxis = _.map(xAxis.data, date => new Date(date).getTime())
+	let xAxis = df["Date"];
+	xAxis = _.map(xAxis.data, date => {
+		const date_str = _.toString(date);
+		const _date = `${date_str.substring(0, 4)}-${date_str.substring(4, 6)}-${date_str.substring(6, 8)}`;
+		return new Date(_date).getTime()
+	})
 	
 	const ohlc_data = _.zip(
 		xAxis,
-		df["OPEN"].data,
-		df["HIGH"].data,
-		df["LOW"].data,
-		df["CLOSE"].data,
+		df["Open Price"].data,
+		df["High Price"].data,
+		df["Low Price"].data,
+		df["Close Price"].data,
 	);
 
 	const dilQty = _.zip(
 		xAxis,
-		df["DILEVERABLE QTY"].data
+		df["Deliverable Qty"].data
 	);
 
 	const chartProps = {
@@ -58,36 +62,6 @@ const _getChartProps = (df, stock, customMA) => {
 				data: dilQty,
 				name: 'Daily Dil Qty',
 				yAxis: 1
-			}, {
-				type: 'sma',
-				linkedTo: 'dilqty',
-				name: 'Dil Qty 7 days MA',
-				visible: false,
-				showInLegend: true,
-				params: {
-					period: 7
-				},
-				yAxis: 1
-			}, {
-				type: 'sma',
-				linkedTo: 'dilqty',
-				name: 'Dil Qty 10 days MA',
-				visible: false,
-				showInLegend: true,
-				params: {
-					period: 10
-				},
-				yAxis: 1
-			}, {
-				type: 'sma',
-				linkedTo: 'dilqty',
-				name: 'Dil Qty 30 days MA',
-				visible: false,
-				showInLegend: true,
-				params: {
-					period: 30
-				},
-				yAxis: 1
 			}]
 		}
 	}
@@ -113,7 +87,7 @@ const DilverableQuantityChart = ({stock}) => {
 	const [df, setDf] = useState(false);
 	const [customMA, setCustomMA] = useState(false);
 
-	const url = `https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/eq-data/${stock}.csv`;
+	const url = `https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/processed-data/${stock}.csv`;
 
 	useEffect(() => {
 		const _setDf = async () => {

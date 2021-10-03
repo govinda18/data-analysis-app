@@ -21,7 +21,7 @@ const Visualizer = () => {
 			return;
 		}
 
-		fetch("https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/eq-data/metadata.json")
+		fetch("https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/metadata.json")
 		.then(async res => {
 			const fetched_metadata = await res.json();
 			setMetadata(fetched_metadata);
@@ -33,7 +33,7 @@ const Visualizer = () => {
 		<VisualizerContainer>
 			<Autocomplete
 				style={{ width: 300 }}
-				options={metadata["symbols"]}
+				options={metadata["stocks"]}
 				autoHighlight
 				getOptionLabel={(option) => option}
 				renderOption={(option) => option}
