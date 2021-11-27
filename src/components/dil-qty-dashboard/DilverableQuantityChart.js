@@ -1,10 +1,12 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import LoadingIndicator from '../uic/LoadingIndicator';
 import * as dfd from "danfojs/src/index";
 import Table from '../uic/Table';
 import DataTable from './DataTable';
 import styled from 'styled-components';
 import Chart from '../chart/Chart';
+import Select from 'react-select';
+import _ from 'lodash';
 
 const Container = styled.div`
 	display: flex;
@@ -13,17 +15,20 @@ const Container = styled.div`
 	align-items: center;
 `;
 
+const _getXAxis = (xAxis) => {
+	return _.map(xAxis.data, date => {
+		const date_str = _.toString(date);
+		const _date = `${date_str.substring(0, 4)}-${date_str.substring(4, 6)}-${date_str.substring(6, 8)}`;
+		return new Date(_date).getTime()
+	});
+}
+
 const _getChartProps = (df, stock, customMA) => {
 	if (!df) {
 		return;
 	}
 
-	let xAxis = df["Date"];
-	xAxis = _.map(xAxis.data, date => {
-		const date_str = _.toString(date);
-		const _date = `${date_str.substring(0, 4)}-${date_str.substring(4, 6)}-${date_str.substring(6, 8)}`;
-		return new Date(_date).getTime()
-	})
+	let xAxis = _getXAxis(df['Date'])
 	
 	const ohlc_data = _.zip(
 		xAxis,
@@ -33,18 +38,11 @@ const _getChartProps = (df, stock, customMA) => {
 		df["Close Price"].data,
 	);
 
-	const dilQty = _.zip(
-		xAxis,
-		df["Deliverable Qty"].data
-	);
-
 	const chartProps = {
 		config: {
 			yAxis: [{
 				title: {text: 'OHLC'},
 				opposite: false
-			}, {
-				title: {text: 'Dil Qty'}
 			}],
 			legend: {
 				enabled: true
@@ -57,35 +55,18 @@ const _getChartProps = (df, stock, customMA) => {
 				data: ohlc_data,
 				type: 'candlestick',
 				name: 'OHLC Series'
-			}, {
-				id: 'dilqty',
-				data: dilQty,
-				name: 'Daily Dil Qty',
-				yAxis: 1
 			}]
 		}
 	}
-	customMA = _.toNumber(customMA);
-	if (customMA) {
-		chartProps.config.series.push({
-				type: 'sma',
-				linkedTo: 'dilqty',
-				name: `Dil Qty ${customMA} days MA`,
-				visible: true,
-				showInLegend: true,
-				params: {
-					period: customMA
-				},
-				yAxis: 1			
-		})
-	}
 
-	return chartProps;
+	return chartProps
 }
 
 const DilverableQuantityChart = ({stock}) => {
 	const [df, setDf] = useState(false);
 	const [customMA, setCustomMA] = useState(false);
+
+	const consideredColumns = _.slice(df.columns, 14);
 
 	const url = `https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/processed-data/${stock}.csv`;
 
@@ -96,6 +77,46 @@ const DilverableQuantityChart = ({stock}) => {
 		}
 		_setDf();
 	}, [stock])
+
+	const chartObj = useRef();
+
+	const chartProps = _.merge(
+		_getChartProps(df, stock, customMA),
+		{
+			config: {
+				chart: {
+					events: {
+						load: function(chart) {
+							chartObj.current = this;
+						}
+					}
+				}
+			}
+		}
+	);
+
+	const options = _.map(consideredColumns, (col) => ({
+		label: col,
+		value: col
+	}))
+
+	const _plotSeries = (selection, changeEvt) => {
+		if (changeEvt.action == 'select-option') {
+			chartObj.current.addAxis({
+				id: `${changeEvt.option.value}-axis`,
+				title:  {text: changeEvt.option.value}
+			})
+			chartObj.current.addSeries({
+				data: _.zip(_getXAxis(df['Date']), df[changeEvt.option.value].data),
+				name: changeEvt.option.value,
+				yAxis: `${changeEvt.option.value}-axis`,
+				id: changeEvt.option.value
+			})
+		} else {
+			chartObj.current.get(changeEvt.removedValue.value).remove();
+			chartObj.current.get(`${changeEvt.removedValue.value}-axis`).remove();
+		}
+	}
 
 	return (
 		<>
@@ -109,16 +130,16 @@ const DilverableQuantityChart = ({stock}) => {
 				</Container>
 			)
 		}
-		<div style={{display: 'flex', gap: '20px', alignItems: 'center'}}>
-			<div> Custom Moving Average </div>
-			<input 
-				style={{padding: '4px'}} 
-				placeholder="Enter Period" 
-				type="number"
-				onBlur={(evt) => setCustomMA(evt.target.value)} 
-			/>
+		<div 
+			style={{
+				display: 'flex', 
+				gap: '20px', 
+				alignItems: 'center'
+			}}
+		>
+			<Select options={options} isMulti onChange={_plotSeries} width={200}/>		
 		</div>
-		<Chart {..._getChartProps(df, stock, customMA)} />
+		<Chart {...chartProps} />
 		</>
 	)
 }
