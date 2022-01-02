@@ -66,9 +66,11 @@ const DilverableQuantityChart = ({stock}) => {
 	const [df, setDf] = useState(false);
 	const [customMA, setCustomMA] = useState(false);
 
-	const consideredColumns = _.slice(df.columns, 14);
+	const consideredColumns = _.slice(df.columns, 14) 
+	consideredColumns.push('Deliverable Qty');
 
 	const url = `https://raw.githubusercontent.com/govinda18/Dilverable-Quantity-Database/master/processed-data/${stock}.csv`;
+	const dashboard_url = `https://github.com/govinda18/Dilverable-Quantity-Database/blob/master/dashboard-stocks/stock-wise/${stock}.csv`
 
 	useEffect(() => {
 		const _setDf = async () => {
@@ -125,7 +127,8 @@ const DilverableQuantityChart = ({stock}) => {
 			? <LoadingIndicator text="Fetching data, Please wait" />
 			: (
 				<Container>
-					<h5><a target="_blank" href={url}>Link to Data</a></h5>
+					<h5><a target="_blank" href={url}>Link to Full Data</a></h5>
+					<h5><a target="_blank" href={dashboard_url}>Stock Dashboard Link</a></h5>
 					<DataTable df={df} />
 				</Container>
 			)
